@@ -4,9 +4,12 @@ package main
 
 import (
 	"log/slog"
+	"os"
+	"strings"
 
 	"github.com/rafaelromao/zmk-vim-mode/internal/focus"
 	"github.com/rafaelromao/zmk-vim-mode/internal/focus/hyprland"
+	"github.com/rafaelromao/zmk-vim-mode/internal/focus/niri"
 	"github.com/rafaelromao/zmk-vim-mode/internal/focus/noop"
 	"github.com/rafaelromao/zmk-vim-mode/internal/leds"
 	ledslinux "github.com/rafaelromao/zmk-vim-mode/internal/leds/linux"
@@ -23,6 +26,9 @@ func newBackend(log *slog.Logger, f deviceFilter) leds.Backend {
 }
 
 func newFocusWatcher(log *slog.Logger) focus.Watcher {
+	if os.Getenv("NIRI_SOCKET") != "" || strings.Contains(":"+strings.ToLower(os.Getenv("XDG_CURRENT_DESKTOP"))+":", ":niri:") {
+		return niri.New(log)
+	}
 	h := hyprland.New(log)
 	if h.Available() {
 		return h
